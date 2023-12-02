@@ -31,8 +31,8 @@ function writePreferences(cordovaContext, pluginPreferences) {
    * @see http://cordova.apache.org/announcements/2017/12/04/cordova-android-7.0.0.html
    */
   if (!manifestSource) {
-      pathToManifest = path.join(cordovaContext.opts.projectRoot, 'platforms', 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
-      manifestSource = xmlHelper.readXmlAsJson(pathToManifest);
+    pathToManifest = path.join(cordovaContext.opts.projectRoot, 'platforms', 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
+    manifestSource = xmlHelper.readXmlAsJson(pathToManifest);
   }
 
   // remove old intent-filters
@@ -79,7 +79,7 @@ function removeIntentFiltersFromActivity(activity) {
     return;
   }
 
-  oldIntentFilters.forEach(function(intentFilter) {
+  oldIntentFilters.forEach(function (intentFilter) {
     if (!isIntentFilterForUniversalLinks(intentFilter)) {
       newIntentFilters.push(intentFilter);
     }
@@ -137,7 +137,7 @@ function isCategoriesForUniversalLinks(categories) {
   var isDefault = false;
 
   // check intent categories
-  categories.forEach(function(category) {
+  categories.forEach(function (category) {
     var categoryName = category['$']['android:name'];
     if (!isBrowsable) {
       isBrowsable = 'android.intent.category.BROWSABLE' === categoryName;
@@ -198,8 +198,8 @@ function injectOptions(manifestData, pluginPreferences) {
   launchActivity = activitiesList[launchActivityIndex];
 
   // generate intent-filters
-  pluginPreferences.hosts.forEach(function(host) {
-    host.paths.forEach(function(hostPath) {
+  pluginPreferences.hosts.forEach(function (host) {
+    host.paths.forEach(function (hostPath) {
       ulIntentFilters.push(createIntentFilter(host.name, host.scheme, hostPath));
     });
   });
@@ -218,7 +218,7 @@ function injectOptions(manifestData, pluginPreferences) {
  */
 function getMainLaunchActivityIndex(activities) {
   var launchActivityIndex = -1;
-  activities.some(function(activity, index) {
+  activities.some(function (activity, index) {
     if (isLaunchActivity(activity)) {
       launchActivityIndex = index;
       return true;
@@ -244,16 +244,28 @@ function isLaunchActivity(activity) {
     return false;
   }
 
-  isLauncher = intentFilters.some(function(intentFilter) {
+  isLauncher = intentFilters.some(function (intentFilter) {
     var action = intentFilter['action'];
     var category = intentFilter['category'];
 
-    if (action == null || action.length != 1 || category == null || category.length != 1) {
+    if (action == null || action.length == 0 || category == null || category.length == 0) {
       return false;
     }
 
-    var isMainAction = ('android.intent.action.MAIN' === action[0]['$']['android:name']);
-    var isLauncherCategory = ('android.intent.category.LAUNCHER' === category[0]['$']['android:name']);
+    var isMainAction = false;
+    var isLauncherCategory = false;
+
+    action.forEach(function (item) {
+      if (!isMainAction) {
+        isMainAction = ('android.intent.action.MAIN' === item['$']['android:name']);
+      }
+    });
+
+    category.forEach(function (item) {
+      if (!isLauncherCategory) {
+        isLauncherCategory = ('android.intent.category.LAUNCHER' === item['$']['android:name']);
+      }
+    });
 
     return isMainAction && isLauncherCategory;
   });
